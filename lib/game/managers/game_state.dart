@@ -284,7 +284,29 @@ class GameState {
         }
       }
     }
+    _resolveEnemyOverlaps();
   }
+
+  void _resolveEnemyOverlaps() {
+    for (int i = 0; i < enemies.length; i++) {
+      final e1 = enemies[i];
+      if (e1.health <= 0) continue;
+      for (int j = i + 1; j < enemies.length; j++) {
+        final e2 = enemies[j];
+        if (e2.health <= 0) continue;
+        final diff = e2.worldPosition - e1.worldPosition;
+        final distance = diff.distance;
+        final minDistance = e1.radius + e2.radius;
+        if (distance < minDistance && distance > 0) {
+          final move = diff / distance * (minDistance - distance) / 2;
+          e1.worldPosition -= move;
+          e2.worldPosition += move;
+        }
+      }
+    }
+  }
+
+
 
   void _fireBossProjectile(Enemy boss) {
     Offset directionToPlayer = (worldCharacterPosition - boss.worldPosition);
@@ -381,10 +403,6 @@ class GameState {
     playerCurrentHealth = 0;
     isGameOver = true;
     print("GAME OVER!");
-    // TODO: 게임 오버 처리 로직 (예: Ticker 중지, 게임 오버 화면 표시 등)
-    // 현재는 Ticker가 GameScreenState에 있으므로, GameScreenState에서 Ticker를 중지해야 함.
-    // 또는 GameState에 게임 오버 플래그를 두고 GameScreenState에서 이를 감지하여 처리.
-    // isGameOver = true; (GameState에 플래그 추가 필요)
   }
 
 

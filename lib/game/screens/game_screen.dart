@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-// import 'dart:math' as math; // GameState로 이동
 import 'package:flutter/scheduler.dart';
 import '../components/hud_overlay.dart';
 import '../components/game_painter.dart';
 import '../managers/game_state.dart';
-import 'game_over_screen.dart'; // GameOverScreen import 추가
 import 'game_over_overlay.dart';
 
 
