@@ -5,6 +5,9 @@ import '../components/hud_overlay.dart';
 import '../components/game_painter.dart';
 import '../managers/game_state.dart';
 import 'game_over_screen.dart'; // GameOverScreen import 추가
+import 'game_over_overlay.dart';
+
+
 
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key});
@@ -66,14 +69,14 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
     _ticker?.stop();
 
     // GameOverScreen으로 이동하면서 현재 게임 결과 전달
-    Navigator.of(context).pushReplacement( // 현재 화면을 GameOverScreen으로 대체
-      MaterialPageRoute(
-        builder: (context) => GameOverScreen(
-          finalLevel: gameState.currentLevel,
-          elapsedTime: _formatDurationForGameOver(gameState.totalElapsedTimeSeconds),
-        ),
-      ),
-    );
+    // Navigator.of(context).pushReplacement( // 현재 화면을 GameOverScreen으로 대체
+    //   MaterialPageRoute(
+    //     builder: (context) => GameOverScreen(
+    //       finalLevel: gameState.currentLevel,
+    //       elapsedTime: _formatDurationForGameOver(gameState.totalElapsedTimeSeconds),
+    //     ),
+    //   ),
+    // );
   }
 
 
@@ -162,7 +165,7 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
               size: Size.infinite,
             ),
           ),
-          if (_isInitialized && !_isGameOver) // 게임 오버가 아닐 때만 HUD 표시
+          if (_isInitialized && !_isGameOver)
             HudOverlay(
               currentLevel: gameState.currentLevel,
               currentExp: gameState.expBarPercentage,
@@ -170,6 +173,13 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
               elapsedTimeInSeconds: gameState.totalElapsedTimeSeconds.toInt(),
               playerCurrentHealth: gameState.playerCurrentHealth,
               playerMaxHealth: gameState.playerMaxHealth,
+            ),
+          if (_isGameOver)
+            GameOverOverlay(
+              finalLevel: gameState.currentLevel,
+              elapsedTime: _formatDurationForGameOver(
+                gameState.totalElapsedTimeSeconds,
+              ),
             ),
         ],
       ),
