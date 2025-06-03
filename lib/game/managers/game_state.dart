@@ -70,6 +70,8 @@ class Projectile {
   final Color color;
   final double radius;
   final double damageToPlayer;
+  final double damageToEnemy;
+  final bool isFromPlayer;
   bool isActive = true;
 
   Projectile({
@@ -80,6 +82,8 @@ class Projectile {
     this.color = Colors.redAccent,
     this.radius = 8.0,
     this.damageToPlayer = 15.0,
+    this.damageToEnemy = 10.0,
+    this.isFromPlayer = false,
   });
 }
 
@@ -105,7 +109,12 @@ class GameState {
   final double characterCollisionRadius = 15.0;
   final double playerMaxHealth = 100.0; // 플레이어 최대 체력
   double playerCurrentHealth = 100.0; // 플레이어 현재 체력
+
   bool isGameOver = false; // 플레이어 사망 여부
+
+  // --- 플레이어 발사체 관련 ---
+  double playerProjectileTimer = 0.0;
+  final double playerProjectileInterval = 0.5;
 
 
   // --- 적 관련 상태 변수 ---
@@ -321,6 +330,45 @@ class GameState {
     ));
   }
 
+  void updatePlayerAttack(double deltaTime) {
+    playerProjectileTimer += deltaTime;
+    if (playerProjectileTimer >= playerProjectileInterval) {
+      _firePlayerProjectile();
+      playerProjectileTimer = 0.0;
+    }
+  }
+
+  void _firePlayerProjectile() {
+    if (enemies.isEmpty) return;
+    // 가장 가까운 적을 찾음
+    Enemy? target;
+    double shortest = double.infinity;
+    for (var e in enemies) {
+      if (e.health <= 0) continue;
+      final d = (e.worldPosition - worldCharacterPosition).distanceSquared;
+      if (d < shortest) {
+        shortest = d;
+        target = e;
+      }
+    }
+    if (target == null) return;
+    Offset dir = (target.worldPosition - worldCharacterPosition);
+    if (dir.distanceSquared == 0) return;
+    dir = dir / dir.distance;
+
+    projectiles.add(Projectile(
+      id: DateTime.now().millisecondsSinceEpoch.toString() + random.nextInt(1000).toString(),
+      worldPosition: worldCharacterPosition + dir * (characterCollisionRadius + 5.0),
+      direction: dir,
+      color: Colors.yellowAccent,
+      speed: 250.0,
+      radius: 6.0,
+      damageToPlayer: 0.0,
+      damageToEnemy: 20.0,
+      isFromPlayer: true,
+    ));
+  }
+
   void moveProjectiles(double deltaTime) {
     projectiles.removeWhere((p) {
       p.worldPosition += p.direction * p.speed * deltaTime;
@@ -380,10 +428,35 @@ class GameState {
     }
     enemies.removeWhere((e) => enemiesToRemove.contains(e) || e.health <=0);
 
+    // 플레이어 발사체와 적 충돌
+    List<Projectile> playerProjectilesToRemove = [];
+    for (var projectile in projectiles) {
+      if (!projectile.isFromPlayer || !projectile.isActive) continue;
+      for (var enemy in enemies) {
+        if (enemy.health <= 0) continue;
+        final distance = (enemy.worldPosition - projectile.worldPosition).distance;
+        if (distance < enemy.radius + projectile.radius) {
+          enemy.health -= projectile.damageToEnemy;
+          projectile.isActive = false;
+          playerProjectilesToRemove.add(projectile);
+          if (enemy.health <= 0) {
+            enemiesToRemove.add(enemy);
+            crystals.add(_createSingleCrystal(
+              enemy.crystalTypeToDrop,
+              enemy.expToDrop,
+              atPosition: enemy.worldPosition,
+            ));
+          }
+          break;
+        }
+      }
+    }
+    projectiles.removeWhere((p) => playerProjectilesToRemove.contains(p));
+    enemies.removeWhere((e) => enemiesToRemove.contains(e) || e.health <=0);
 
     // 플레이어와 보스 발사체 충돌
     projectiles.removeWhere((projectile) {
-      if (!projectile.isActive) return false;
+      if (!projectile.isActive || projectile.isFromPlayer) return false;
       final distance = (worldCharacterPosition - projectile.worldPosition).distance;
       if (distance < characterCollisionRadius + projectile.radius) {
         playerCurrentHealth -= projectile.damageToPlayer;

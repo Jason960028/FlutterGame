@@ -89,6 +89,7 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
     gameState.moveCharacter(deltaTime, _movementSpeedInPixelsPerSecond);
     gameState.updateEnemySpawns(deltaTime);
     gameState.moveEnemies(deltaTime);
+    gameState.updatePlayerAttack(deltaTime);
     gameState.moveProjectiles(deltaTime);
 
     if (_isInitialized) {
