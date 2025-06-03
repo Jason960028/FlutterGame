@@ -92,7 +92,7 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
 
     if (_isInitialized) {
       gameState.checkCollisions();
-      if (gameState.playerCurrentHealth <= 0 && !_isGameOver) { // _isGameOver 조건 추가
+      if (gameState.isGameOver && !_isGameOver) {
         _handlePlayerDeathInGameScreen();
       }
     }

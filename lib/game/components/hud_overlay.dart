@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:ui' show FontFeature;
 
 class HudOverlay extends StatelessWidget {
   final int currentLevel;

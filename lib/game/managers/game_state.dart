@@ -105,6 +105,8 @@ class GameState {
   final double characterCollisionRadius = 15.0;
   final double playerMaxHealth = 100.0; // 플레이어 최대 체력
   double playerCurrentHealth = 100.0; // 플레이어 현재 체력
+  bool isGameOver = false; // 플레이어 사망 여부
+
 
   // --- 적 관련 상태 변수 ---
   List<Enemy> enemies = [];
@@ -375,6 +377,9 @@ class GameState {
   }
 
   void _handlePlayerDeath() {
+    if (isGameOver) return;
+    playerCurrentHealth = 0;
+    isGameOver = true;
     print("GAME OVER!");
     // TODO: 게임 오버 처리 로직 (예: Ticker 중지, 게임 오버 화면 표시 등)
     // 현재는 Ticker가 GameScreenState에 있으므로, GameScreenState에서 Ticker를 중지해야 함.
