@@ -4,6 +4,7 @@ import '../components/hud_overlay.dart';
 import '../components/game_painter.dart';
 import '../managers/game_state.dart';
 import 'game_over_overlay.dart';
+import 'package:cached_network_image/cached_network_image.dart'; // Import for GIF
 
 
 
@@ -28,6 +29,10 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
   Duration _lastTick = Duration.zero;
 
   bool _isGameOver = false;
+
+  // Add character image dimensions
+  final double _characterImageWidth = 100.0; // Adjust as needed
+  final double _characterImageHeight = 100.0; // Adjust as needed
 
   @override
   void initState() {
@@ -162,6 +167,20 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
                 screenCenterPosition: _screenCenterPosition,
               ),
               size: Size.infinite,
+            ),
+          ),
+          Positioned(
+            left: _screenCenterPosition.dx - _characterImageWidth / 2,
+            top: _screenCenterPosition.dy - _characterImageHeight / 2,
+            width: _characterImageWidth,
+            height: _characterImageHeight,
+            child: AnimatedSwitcher( // Use AnimatedSwitcher for smooth transitions if character state changes later
+              duration: const Duration(milliseconds: 100),
+              child: Image.asset(
+                'assets/knight/knight_run.gif',
+                key: ValueKey(gameState.currentDirection != Offset.zero), // Key changes when moving
+                fit: BoxFit.contain,
+              ),
             ),
           ),
           if (_isInitialized && !_isGameOver)

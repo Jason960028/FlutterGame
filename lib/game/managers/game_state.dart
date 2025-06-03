@@ -89,7 +89,6 @@ class Projectile {
   });
 }
 
-
 class GameState {
   // --- 기존 상태 변수들 ---
   Offset worldCharacterPosition = Offset.zero;
