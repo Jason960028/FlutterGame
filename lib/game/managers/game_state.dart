@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
+import 'package:uuid/uuid.dart';
+
 
 // 경험치 크리스탈 등급 (색상 구분을 위함)
 enum ExperienceCrystalType { normal, elite, boss }
@@ -102,10 +104,12 @@ class GameState {
   double expBarPercentage = 0.0;
   List<ExperienceCrystal> crystals = [];
   final math.Random random = math.Random();
+  final Uuid uuid = const Uuid();
+
 
   // --- 게임 설정 값 ---
-  final int maxCrystals = 15; // 맵의 크리스탈 수 약간 줄임
-  final double crystalSpawnAreaRadius = 500.0;
+  final int maxCrystals = 50; // 맵의 크리스탈 수 약간 줄임
+  final double crystalSpawnAreaRadius = 1000.0;
   final double characterCollisionRadius = 15.0;
   final double playerMaxHealth = 100.0; // 플레이어 최대 체력
   double playerCurrentHealth = 100.0; // 플레이어 현재 체력
@@ -183,7 +187,7 @@ class GameState {
     );
 
     return ExperienceCrystal(
-      id: DateTime.now().millisecondsSinceEpoch.toString() + random.nextInt(1000).toString(),
+      id: uuid.v4(),
       worldPosition: position,
       expValue: expValue,
       color: crystalColors[type] ?? Colors.white, // 등급별 색상 적용
@@ -211,7 +215,7 @@ class GameState {
   void levelUp() {
     currentLevel++;
     currentExp -= expToNextLevel;
-    expToNextLevel *= 1.05;
+    expToNextLevel *= 1.10;
     if (currentExp >= expToNextLevel && expToNextLevel > 0) {
       levelUp();
     } else {
@@ -258,7 +262,7 @@ class GameState {
 
     final stats = enemyStats[type]!;
     enemies.add(Enemy(
-      id: DateTime.now().millisecondsSinceEpoch.toString() + random.nextInt(10000).toString(),
+      id: uuid.v4(),
       type: type,
       worldPosition: position,
       health: stats['health'],
@@ -323,7 +327,7 @@ class GameState {
     directionToPlayer = directionToPlayer / directionToPlayer.distance;
 
     projectiles.add(Projectile(
-      id: DateTime.now().millisecondsSinceEpoch.toString() + random.nextInt(1000).toString(),
+      id: uuid.v4(),
       worldPosition: boss.worldPosition + directionToPlayer * (boss.radius + 5.0), // 보스 약간 앞에서 발사
       direction: directionToPlayer,
       damageToPlayer: enemyStats[EnemyType.boss]!['damage'] * 0.5, // 보스 발사체 데미지 (예시)
@@ -357,7 +361,7 @@ class GameState {
     dir = dir / dir.distance;
 
     projectiles.add(Projectile(
-      id: DateTime.now().millisecondsSinceEpoch.toString() + random.nextInt(1000).toString(),
+      id: uuid.v4(),
       worldPosition: worldCharacterPosition + dir * (characterCollisionRadius + 5.0),
       direction: dir,
       color: Colors.yellowAccent,
@@ -382,12 +386,10 @@ class GameState {
   // --- 충돌 처리 로직 ---
   void checkCollisions() {
     // 플레이어와 크리스탈 충돌
-    List<ExperienceCrystal> collectedCrystalsThisFrame = [];
     crystals.removeWhere((crystal) {
       final distance = (worldCharacterPosition - crystal.worldPosition).distance;
       if (distance < characterCollisionRadius + crystal.radius) {
         addExperience(crystal.expValue);
-        collectedCrystalsThisFrame.add(crystal);
         print("Collected crystal! EXP +${crystal.expValue}");
         return true; // 제거
       }
@@ -426,7 +428,6 @@ class GameState {
         }
       }
     }
-    enemies.removeWhere((e) => enemiesToRemove.contains(e) || e.health <=0);
 
     // 플레이어 발사체와 적 충돌
     List<Projectile> playerProjectilesToRemove = [];
@@ -452,7 +453,6 @@ class GameState {
       }
     }
     projectiles.removeWhere((p) => playerProjectilesToRemove.contains(p));
-    enemies.removeWhere((e) => enemiesToRemove.contains(e) || e.health <=0);
 
     // 플레이어와 보스 발사체 충돌
     projectiles.removeWhere((projectile) {
@@ -469,6 +469,7 @@ class GameState {
       }
       return false;
     });
+    enemies.removeWhere((e) => enemiesToRemove.contains(e) || e.health <= 0);
   }
 
   void _handlePlayerDeath() {
