@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import 'package:uuid/uuid.dart';
+import 'knight_state.dart';
 
 
 // 경험치 크리스탈 등급 (색상 구분을 위함)
@@ -105,6 +106,13 @@ class GameState {
   final math.Random random = math.Random();
   final Uuid uuid = const Uuid();
 
+  // --- 플레이어 상태 관련 ---
+  KnightState playerState = KnightState.idle;
+  double _hurtTimer = 0.0;
+  double _attackTimer = 0.0;
+  final double hurtStateDuration = 0.5;
+  final double attackStateDuration = 0.3;
+
 
   // --- 게임 설정 값 ---
   final int maxCrystals = 50; // 맵의 크리스탈 수 약간 줄임
@@ -117,7 +125,7 @@ class GameState {
 
   // --- 플레이어 발사체 관련 ---
   double playerProjectileTimer = 0.0;
-  final double playerProjectileInterval = 0.5;
+  final double playerProjectileInterval = 1;
 
 
   // --- 적 관련 상태 변수 ---
@@ -318,6 +326,25 @@ class GameState {
     }
   }
 
+  void updateStateTimers(double deltaTime) {
+    if (_hurtTimer > 0) {
+      _hurtTimer -= deltaTime;
+      if (_hurtTimer <= 0) {
+        _hurtTimer = 0.0;
+        playerState = KnightState.idle;
+      }
+    }
+    if (_attackTimer > 0) {
+      _attackTimer -= deltaTime;
+      if (_attackTimer <= 0) {
+        _attackTimer = 0.0;
+        playerState = currentDirection == Offset.zero
+            ? KnightState.idle
+            : KnightState.idle;
+      }
+    }
+  }
+
 
 
   void _fireBossProjectile(Enemy boss) {
@@ -370,6 +397,8 @@ class GameState {
       damageToEnemy: 20.0,
       isFromPlayer: true,
     ));
+    playerState = KnightState.attack;
+    _attackTimer = attackStateDuration;
   }
 
   void moveProjectiles(double deltaTime) {
@@ -409,6 +438,8 @@ class GameState {
       if (distance < characterCollisionRadius + enemy.radius) {
         playerCurrentHealth -= enemy.damageToPlayer;
         print("Player hit by ${enemy.type}! HP: $playerCurrentHealth");
+        playerState = KnightState.hurt;
+        _hurtTimer = hurtStateDuration;
         // 적은 플레이어와 충돌 시 바로 죽는 대신, 플레이어 공격에 의해 죽도록 변경 예정
         // 현재는 충돌 시 적도 데미지를 입고 죽는다고 가정 (간단하게)
         enemy.health -= 50; // 예시: 플레이어 몸빵 데미지
@@ -460,6 +491,8 @@ class GameState {
       if (distance < characterCollisionRadius + projectile.radius) {
         playerCurrentHealth -= projectile.damageToPlayer;
         print("Player hit by projectile! HP: $playerCurrentHealth");
+        playerState = KnightState.hurt;
+        _hurtTimer = hurtStateDuration;
         projectile.isActive = false; // 발사체 비활성화 (제거 예약)
         if (playerCurrentHealth <= 0) {
           _handlePlayerDeath();
@@ -475,6 +508,7 @@ class GameState {
     if (isGameOver) return;
     playerCurrentHealth = 0;
     isGameOver = true;
+    playerState = KnightState.death;
     print("GAME OVER!");
   }
 
@@ -492,6 +526,9 @@ class GameState {
       final Offset moveDelta = currentDirection * moveAmount;
       worldCharacterPosition += moveDelta;
       cameraPosition += moveDelta;
+    }
+    if (_attackTimer <= 0 && _hurtTimer <= 0 && !isGameOver) {
+      playerState = KnightState.idle;
     }
   }
 }

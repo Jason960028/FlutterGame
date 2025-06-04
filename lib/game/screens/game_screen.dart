@@ -4,6 +4,7 @@ import '../components/hud_overlay.dart';
 import '../components/game_painter.dart';
 import '../managers/game_state.dart';
 import 'game_over_overlay.dart';
+import '../managers/knight_state.dart';
 import 'package:cached_network_image/cached_network_image.dart'; // Import for GIF
 
 
@@ -63,6 +64,24 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
     return '$minutes:$seconds';
   }
 
+  String _getCharacterAsset() {
+    switch (gameState.playerState) {
+      case KnightState.attack:
+        return 'assets/knight/knight_attack.gif';
+      case KnightState.death:
+        return 'assets/knight/knight_death.gif';
+      case KnightState.hurt:
+        return 'assets/knight/knight_hurt.gif';
+      case KnightState.idle:
+      default:
+        if (gameState.currentDirection == Offset.zero) {
+          return 'assets/knight/knight_idle.gif';
+        } else {
+          return 'assets/knight/knight_run.gif';
+        }
+    }
+  }
+
   void _handlePlayerDeathInGameScreen() {
     if (_isGameOver) return; // 이미 게임 오버 처리 중이면 중복 실행 방지
 
@@ -95,6 +114,7 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
     gameState.updateEnemySpawns(deltaTime);
     gameState.moveEnemies(deltaTime);
     gameState.updatePlayerAttack(deltaTime);
+    gameState.updateStateTimers(deltaTime);
     gameState.moveProjectiles(deltaTime);
 
     if (_isInitialized) {
@@ -177,8 +197,8 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
             child: AnimatedSwitcher( // Use AnimatedSwitcher for smooth transitions if character state changes later
               duration: const Duration(milliseconds: 100),
               child: Image.asset(
-                'assets/knight/knight_run.gif',
-                key: ValueKey(gameState.currentDirection != Offset.zero), // Key changes when moving
+                _getCharacterAsset(),
+                key: ValueKey('${gameState.playerState}_${gameState.currentDirection}'),
                 fit: BoxFit.contain,
               ),
             ),
