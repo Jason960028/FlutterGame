@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart' show ByteData, rootBundle; // ByteData, rootBundle 추가
+import 'dart:ui' as ui; // ui.Image 사용을 위해 추가
+
 import '../components/hud_overlay.dart';
 import '../components/game_painter.dart';
 import '../managers/game_state.dart';
 import 'game_over_overlay.dart';
 import '../managers/states.dart';
-import 'package:cached_network_image/cached_network_image.dart'; // Import for GIF
-
-
 
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key});
@@ -31,20 +31,45 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
 
   bool _isGameOver = false;
 
-  // Add character image dimensions
-  final double _characterImageWidth = 100.0; // Adjust as needed
-  final double _characterImageHeight = 100.0; // Adjust as needed
+  final double _characterImageWidth = 100.0;
+  final double _characterImageHeight = 100.0;
+
+  ui.Image? _backgroundImage; // 로드된 배경 이미지를 저장할 변수
+  bool _isBackgroundImageLoading = true; // 배경 이미지 로딩 상태
 
   @override
   void initState() {
     super.initState();
     gameState = GameState();
+    _loadBackgroundImage(); // initState에서 배경 이미지 로딩 시작
     _ticker = createTicker(_gameLoop);
     if (!_isGameOver && !_ticker!.isTicking) {
       _lastTick = Duration.zero;
       _ticker!.start();
     }
   }
+
+  Future<void> _loadBackgroundImage() async {
+    try {
+      final ByteData data = await rootBundle.load('assets/background/background.png');
+      final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
+      final frame = await codec.getNextFrame();
+      if (mounted) {
+        setState(() {
+          _backgroundImage = frame.image;
+          _isBackgroundImageLoading = false;
+        });
+      }
+    } catch (e) {
+      print("배경 이미지 로딩 실패: $e");
+      if (mounted) {
+        setState(() {
+          _isBackgroundImageLoading = false; // 실패 시에도 로딩 상태 변경
+        });
+      }
+    }
+  }
+
 
   @override
   void didChangeDependencies() {
@@ -83,27 +108,17 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
   }
 
   void _handlePlayerDeathInGameScreen() {
-    if (_isGameOver) return; // 이미 게임 오버 처리 중이면 중복 실행 방지
+    if (_isGameOver) return;
 
     setState(() {
       _isGameOver = true;
     });
     _ticker?.stop();
-
-    // GameOverScreen으로 이동하면서 현재 게임 결과 전달
-    // Navigator.of(context).pushReplacement( // 현재 화면을 GameOverScreen으로 대체
-    //   MaterialPageRoute(
-    //     builder: (context) => GameOverScreen(
-    //       finalLevel: gameState.currentLevel,
-    //       elapsedTime: _formatDurationForGameOver(gameState.totalElapsedTimeSeconds),
-    //     ),
-    //   ),
-    // );
   }
 
 
   void _gameLoop(Duration elapsed) {
-    if (_isGameOver) return;
+    if (_isGameOver || _isBackgroundImageLoading) return; // 이미지 로딩 중에는 게임 루프 미실행
 
     final Duration deltaTimeDuration = elapsed - _lastTick;
     _lastTick = elapsed;
@@ -133,16 +148,19 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
   Widget build(BuildContext context) {
     final controlAreaStartY = MediaQuery.of(context).size.height / 3;
 
-    // _isGameOver 상태는 _handlePlayerDeathInGameScreen에서 화면 전환으로 처리하므로,
-    // build 메소드에서 _isGameOver에 따른 분기 처리는 제거해도 됩니다.
-    // 만약 GameOverScreen으로 즉시 전환되지 않고 GameScreen 위에 오버레이 형태로
-    // 게임 오버 UI를 표시하고 싶다면 이 분기 로직이 필요할 수 있습니다.
-    // 현재는 pushReplacement로 화면을 완전히 전환합니다.
+    if (_isBackgroundImageLoading) {
+      return Scaffold( // 이미지 로딩 중일 때 로딩 인디케이터 표시
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
 
     return Scaffold(
-      backgroundColor: Colors.green[900],
       body: Stack(
         children: [
+          // Background Image
+          // Positioned.fill(...) 제거됨
           GestureDetector(
             onPanStart: (details) {
               if (_isGameOver) return;
@@ -181,10 +199,11 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
               _currentDragForUI = null;
               if(mounted) setState(() {});
             },
-            child: CustomPaint(
+            child: CustomPaint( // CustomPaint 위젯에 로드된 이미지 전달
               painter: GamePainter(
                 gameState: gameState,
                 screenCenterPosition: _screenCenterPosition,
+                backgroundImage: _backgroundImage, // 배경 이미지 전달
               ),
               size: Size.infinite,
             ),
@@ -194,7 +213,7 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
             top: _screenCenterPosition.dy - _characterImageHeight / 2,
             width: _characterImageWidth,
             height: _characterImageHeight,
-            child: AnimatedSwitcher( // Use AnimatedSwitcher for smooth transitions if character state changes later
+            child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 100),
               child: Transform(
                 alignment: Alignment.center,
@@ -233,6 +252,7 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
   void dispose() {
     _ticker?.stop();
     _ticker?.dispose();
+    _backgroundImage?.dispose(); // 이미지 객체 dispose
     super.dispose();
   }
 }
