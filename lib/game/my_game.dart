@@ -2,7 +2,6 @@
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'components/player_component.dart';
 import 'package:flame/palette.dart';
 import 'managers/level_manager.dart';
