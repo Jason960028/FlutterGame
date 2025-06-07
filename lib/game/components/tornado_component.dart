@@ -2,7 +2,6 @@ import 'dart:math' as math;
 import 'package:flame/components.dart';
 import 'package:flame/collisions.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'enemy_component.dart';
 import '../my_game.dart';
 

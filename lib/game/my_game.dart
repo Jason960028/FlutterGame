@@ -2,14 +2,12 @@
 import 'dart:math' as math;
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
-import 'package:flame/collisions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'components/player_component.dart';
 import 'components/enemy_component.dart';
 import 'package:flame/palette.dart';
 import 'components/crystal_component.dart';
-import 'components/tornado_component.dart';
 import 'weapons/weapon_definitions.dart';
 import 'upgrades/upgrade_definitions.dart';
 import 'upgrades/upgrade_data.dart';

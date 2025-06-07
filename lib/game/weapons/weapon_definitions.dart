@@ -1,6 +1,5 @@
 import 'dart:math' as math;
 import 'package:flame/components.dart';
-import '../my_game.dart';
 import 'weapon_data.dart';
 import '../components/player_projectile_component.dart';
 import '../components/tornado_component.dart';
