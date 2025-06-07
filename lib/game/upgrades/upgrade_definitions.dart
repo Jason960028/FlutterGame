@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter_game/game/components/tornado_component.dart';
 import 'upgrade_data.dart';
 import '../weapons/weapon_definitions.dart';
 
@@ -55,6 +54,20 @@ final List<UpgradeData> allUpgrades = [
         weapon.durationMultiplier += 0.6;
         weapon.level++;
         if (kDebugMode) print("부요의 깃털 LV3: 지속시간 배율 증가 -> ${weapon.durationMultiplier}");
+      }
+    },
+  ),
+  UpgradeData(
+    id: 'feather_of_buyo_lv4_speed',
+    name: '부요의 깃털 (LV4)',
+    description: '회오리의 이동속도가 2배 증가합니다.',
+    type: UpgradeType.weapon,
+    apply: (game) {
+      final weapon = game.player.weaponManager.getWeaponById('feather_of_buyo');
+      if (weapon != null) {
+        weapon.speedMultiplier *= 2; // 속도 배율 2배
+        weapon.level++;
+        if (kDebugMode) print("부요의 깃털 LV4: 속도 배율 증가 -> ${weapon.speedMultiplier}");
       }
     },
   ),

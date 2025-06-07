@@ -18,12 +18,11 @@ class TornadoComponent extends PositionComponent with HasGameRef<MyGame>, Collis
 
   TornadoComponent({
     required Vector2 position,
-    required Vector2 initialVelocity,
-    required this.damagePerSecond, // 필수로 받도록 변경
+    required this.velocity, // **수정**: 초기 속도가 아닌 최종 속도를 직접 받음
+    required this.damagePerSecond,
     double radius = 20.0,
     this.lifetime = 5.0,
   }) : _radius = radius,
-        velocity = initialVelocity.normalized() * 150.0,
         super(
         position: position,
         size: Vector2.all(radius * 2),

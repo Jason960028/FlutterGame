@@ -36,17 +36,21 @@ final Map<String, WeaponData> _allWeapons = {
       final sizeMultiplier = player.passiveManager.projectileSizeMultiplier;
       final damageMultiplier = weaponData.damageMultiplier;
       final durationMultiplier = weaponData.durationMultiplier;
+      final speedMultiplier = weaponData.speedMultiplier;
+
 
       final randomAngle = _random.nextDouble() * 2 * math.pi;
       final randomDirection = Vector2(math.cos(randomAngle), math.sin(randomAngle));
+      final baseSpeed = 150.0; // 회오리의 기본 속도
 
       return TornadoComponent(
         position: position,
-        initialVelocity: randomDirection,
+        velocity: randomDirection * baseSpeed * speedMultiplier, // **수정**: 최종 속도 벡터 전달
         radius: 20.0 * sizeMultiplier,
-        lifetime: 5.0 * durationMultiplier, // 최종 지속시간 전달
-        damagePerSecond: weaponData.damage * damageMultiplier, // 최종 초당 데미지 전달
+        lifetime: 5.0 * durationMultiplier,
+        damagePerSecond: weaponData.damage * damageMultiplier,
       );
+
     },
   ),
 };

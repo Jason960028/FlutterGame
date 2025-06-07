@@ -13,6 +13,7 @@ class WeaponData {
   double cooldown;
   final double damage; // 무기의 기본 데미지
   final ComponentFactory spawnComponent;
+  double speedMultiplier = 1.0; // 속도 배율 속성 추가
 
   double timer = 0.0;
   int level = 0;
