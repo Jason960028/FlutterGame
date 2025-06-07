@@ -77,7 +77,8 @@ class MyGame extends FlameGame with HasCollisionDetection, ChangeNotifier {
       margin: const EdgeInsets.only(left: 40, bottom: 40),
     );
     camera.viewport.add(joystick);
-    debugMode = true;
+    debugMode = false;
+    camera.viewfinder.zoom = 0.8;
     camera.follow(player);
     overlays.add('HudOverlay');
     notifyListeners();
