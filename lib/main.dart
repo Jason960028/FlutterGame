@@ -1,6 +1,6 @@
+// lib/main.dart
 import 'package:flutter/material.dart';
-
-import 'game/screens/home_screen.dart';
+import 'game/screens/home_screen.dart'; // HomeScreen 임포트
 
 void main() {
   runApp(const MyApp());
