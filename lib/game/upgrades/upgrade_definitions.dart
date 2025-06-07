@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter_game/game/components/tornado_component.dart';
 import 'upgrade_data.dart';
 import '../weapons/weapon_definitions.dart';
 
@@ -72,6 +73,22 @@ final List<UpgradeData> allUpgrades = [
         // 현재 패시브 레벨 저장
         passiveManager.passiveLevels['projectile_size'] = level;
         if (kDebugMode) print("패시브: 발사체 크기 배율 -> ${passiveManager.projectileSizeMultiplier}");
+      },
+    );
+  }),
+  ...List.generate(5, (i) {
+    final level = i + 1;
+    final multiplier = 1 << level;
+    return UpgradeData(
+      id: 'exp_collect_range_lv$level',
+      name: '크리스탈 흡수 범위 증가 (LV$level)',
+      description: '경험치 크리스탈을 끌어들이는 범위가 두 배 증가합니다. (현재: ×$multiplier)',
+      type: UpgradeType.passive,
+      apply: (game) {
+        final passiveManager = game.player.passiveManager;
+        passiveManager.expCollectingRange *= 1.5;
+        passiveManager.passiveLevels['exp_collect_range'] = level;
+        if (kDebugMode) print('패시브: 크리스탈 수집 범위 -> ${passiveManager.expCollectingRange}');
       },
     );
   }),

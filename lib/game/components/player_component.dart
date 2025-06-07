@@ -11,6 +11,7 @@ import 'passive_manager_component.dart'; // PassiveManagerComponent 임포트
 class PlayerComponent extends PositionComponent with CollisionCallbacks, HasGameRef<MyGame> {
   static final _paint = Paint()..color = Colors.yellow;
   final double _radius;
+  static const double _baseCrystalCollectRange = 50.0;
 
   double maxHealth = 100.0;
   double currentHealth = 100.0;
@@ -55,6 +56,15 @@ class PlayerComponent extends PositionComponent with CollisionCallbacks, HasGame
   void update(double dt) {
     super.update(dt);
     if (isDead || gameRef.isGameOver) return;
+
+    final collectRange = _baseCrystalCollectRange * passiveManager.expCollectingRange;
+    final collectRangeSq = collectRange * collectRange;
+    for (final crystal in gameRef.world.children.whereType<CrystalComponent>().toList()) {
+      if (position.distanceToSquared(crystal.position) <= collectRangeSq) {
+        gameRef.addExperience(crystal.expValue);
+        crystal.removeFromParent();
+      }
+    }
   }
 
   void takeDamage(double damageAmount) {
