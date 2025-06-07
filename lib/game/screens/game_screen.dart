@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../my_game.dart';
 import 'game_over_overlay.dart';
 import '../components/hud_overlay.dart';
+import 'level_up_overlay.dart';
 
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key});
@@ -56,6 +57,9 @@ class _GameScreenState extends State<GameScreen> {
               );
             },
           );
+        },
+        'LevelUpOverlay': (context, game) { // 레벨업 오버레이 추가
+          return LevelUpOverlay(game: game);
         },
       },
       // initialActiveOverlays는 MyGame.onLoad에서 HudOverlay를 추가하므로 여기서 제거

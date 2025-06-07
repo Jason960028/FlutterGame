@@ -8,30 +8,34 @@ import '../my_game.dart';
 
 class TornadoComponent extends PositionComponent with HasGameRef<MyGame>, CollisionCallbacks {
   static final _paint = Paint()..color = Colors.white.withOpacity(0.5);
-  final double _radius; // 인스턴스 변수로 변경
+  final double _radius;
   Vector2 velocity;
-  double lifetime = 5.0;
-  final double damagePerSecond = 15.0; // 또는 충돌 시 데미지
+  double lifetime;
+  final double damagePerSecond; // final로 변경, 생성 시 값을 받음
+
   Set<EnemyComponent> _collidingEnemies = {};
   double _damageTickTimer = 0.0;
-  final double _damageInterval = 0.5;
+  final double _damageInterval = 0.1;
 
   TornadoComponent({
     required Vector2 position,
     required Vector2 initialVelocity,
-    double radius = 20.0, // radius를 생성자 파라미터로 받음
-  }) : _radius = radius, // 인스턴스 변수 _radius 초기화
+    required this.damagePerSecond, // 필수로 받도록 변경
+    double radius = 20.0,
+    this.lifetime = 5.0,
+  }) : _radius = radius,
         velocity = initialVelocity.normalized() * 150.0,
         super(
         position: position,
-        size: Vector2.all(radius * 2), // 생성자 파라미터 radius 사용
+        size: Vector2.all(radius * 2),
         anchor: Anchor.center,
       );
 
+  // ... (onLoad, render, onCollisionStart, onCollisionEnd는 이전과 동일)
   @override
   Future<void> onLoad() async {
     await super.onLoad();
-    final hitbox = CircleHitbox(radius: _radius, anchor: Anchor.center); // 인스턴스 변수 _radius 사용
+    final hitbox = CircleHitbox(radius: _radius, anchor: Anchor.center);
     hitbox.collisionType = CollisionType.passive;
     add(hitbox);
   }
@@ -39,7 +43,6 @@ class TornadoComponent extends PositionComponent with HasGameRef<MyGame>, Collis
   @override
   void render(Canvas canvas) {
     super.render(canvas);
-    // gameRef.totalElapsedTimeSeconds 접근 가능 (HasGameRef<MyGame> 사용)
     for (int i = 0; i < 5; i++) {
       final offsetAngle = (2 * math.pi / 5) * i + (gameRef.totalElapsedTimeSeconds * 2);
       final offsetRadius = _radius * 0.6 * (math.sin(gameRef.totalElapsedTimeSeconds * 3 + i) * 0.2 + 0.8);
@@ -57,45 +60,33 @@ class TornadoComponent extends PositionComponent with HasGameRef<MyGame>, Collis
       removeFromParent();
       return;
     }
-
     position.add(velocity * dt);
-
-    // 플레이어가 아직 로드되지 않았거나, 이미 제거되었다면 player.position 접근 시 오류 발생 가능
     if (!gameRef.player.isMounted) return;
-
     final playerPos = gameRef.player.position;
     final limit = 500.0;
-    // 히트박스 반지름(_radius)을 고려하여 경계 계산
     final gameMinX = playerPos.x - limit + _radius;
     final gameMaxX = playerPos.x + limit - _radius;
     final gameMinY = playerPos.y - limit + _radius;
     final gameMaxY = playerPos.y + limit - _radius;
-
-
-    if (position.x - _radius < gameMinX && velocity.x < 0) {
+    if (position.x < gameMinX && velocity.x < 0) {
       velocity.x *= -1;
       position.x = gameMinX + _radius;
-    } else if (position.x + _radius > gameMaxX && velocity.x > 0) {
+    } else if (position.x > gameMaxX && velocity.x > 0) {
       velocity.x *= -1;
       position.x = gameMaxX - _radius;
     }
-
-    if (position.y - _radius < gameMinY && velocity.y < 0) {
+    if (position.y < gameMinY && velocity.y < 0) {
       velocity.y *= -1;
       position.y = gameMinY + _radius;
-    } else if (position.y + _radius > gameMaxY && velocity.y > 0) {
+    } else if (position.y > gameMaxY && velocity.y > 0) {
       velocity.y *= -1;
       position.y = gameMaxY - _radius;
     }
-
     _damageTickTimer -= dt;
-    if(_damageTickTimer <=0) {
+    if (_damageTickTimer <= 0) {
       for (var enemy in _collidingEnemies.toList()) {
         if (enemy.isMounted && !enemy.isDead) {
           enemy.takeDamage(damagePerSecond * _damageInterval);
-          if (kDebugMode) {
-            print("회오리가 적(${enemy.hashCode})에게 데미지: ${damagePerSecond * _damageInterval}");
-          }
         }
       }
       _damageTickTimer = _damageInterval;

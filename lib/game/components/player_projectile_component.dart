@@ -7,12 +7,12 @@ class PlayerProjectileComponent extends PositionComponent with CollisionCallback
   static final _paint = Paint()..color = Colors.lightBlueAccent;
   final Vector2 velocity;
   final double _radius;
-  final double damage;
+  final double damage; // final로 유지, 생성 시 값을 받음
 
   PlayerProjectileComponent({
     required Vector2 position,
     required this.velocity,
-    this.damage = 10.0,
+    required this.damage, // 필수로 받도록 변경
     double radius = 5.0,
   }) : _radius = radius,
         super(
@@ -37,8 +37,6 @@ class PlayerProjectileComponent extends PositionComponent with CollisionCallback
   void update(double dt) {
     super.update(dt);
     position.add(velocity * dt);
-    // TODO: 화면 밖으로 나가면 제거하는 로직 추가 (예: if (!gameRef.camera.visibleWorldRect.overlaps(toRect())) removeFromParent();)
-    // 이를 위해서는 HasGameRef<MyGame> 믹스인이 필요합니다.
   }
 
   @override
