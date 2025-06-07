@@ -1,17 +1,13 @@
 // lib/game/my_game.dart
-import 'dart:math' as math;
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'components/player_component.dart';
-import 'components/enemy_component.dart';
 import 'package:flame/palette.dart';
-import 'components/crystal_component.dart';
 import 'managers/level_manager.dart';
 import 'managers/spawn_manager.dart';
 import 'weapons/weapon_definitions.dart';
-import 'upgrades/upgrade_definitions.dart';
 import 'upgrades/upgrade_data.dart';
 
 class MyGame extends FlameGame with HasCollisionDetection, ChangeNotifier {
@@ -30,7 +26,6 @@ class MyGame extends FlameGame with HasCollisionDetection, ChangeNotifier {
   bool _isGameOver = false;
 
   double _totalElapsedTimeSeconds = 0.0;
-  final math.Random _random = math.Random();
   final double crystalSpawnInterval = 5.0;
   double _crystalSpawnTimer = 0.0;
   final int maxCrystalsOnField = 10;
